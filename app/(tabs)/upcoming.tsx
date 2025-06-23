@@ -5,46 +5,41 @@ import tw from "twrnc";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import AnimeCard from "@/components/AnimeCard";
-import { KitsuAnime, fetchCurrentlyAiringAnime } from "@/services/api";
+import { KitsuAnime, fetchUpcomingAnime } from "@/services/api";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
 
-export default function HomeScreen() {
+export default function UpcomingScreen() {
   const [animes, setAnimes] = useState<KitsuAnime[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const colorScheme = useColorScheme() ?? "light";
 
-  const loadCurrentAnime = async () => {
+  const loadUpcomingAnimes = async () => {
     setLoading(true);
-    try {
-      const animesData = await fetchCurrentlyAiringAnime();
-      setAnimes(animesData);
-    } catch (error) {
-      console.error("Error loading current anime:", error);
-    } finally {
-      setLoading(false);
-    }
+    const animesData = await fetchUpcomingAnime();
+    setAnimes(animesData);
+    setLoading(false);
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadCurrentAnime();
+    await loadUpcomingAnimes();
     setRefreshing(false);
   };
 
   useEffect(() => {
-    loadCurrentAnime();
+    loadUpcomingAnimes();
   }, []);
 
   return (
     <ThemedView style={tw`flex-1`}>
       <ThemedView style={tw`pt-16 pb-4 px-4 bg-blue-500 dark:bg-blue-800`}>
         <ThemedText style={tw`text-2xl font-bold text-white`}>
-          En cours de diffusion
+          Animés à venir
         </ThemedText>
         <ThemedText style={tw`text-white mt-1`}>
-          Les animes actuellement en cours
+          Les prochaines sorties d'animés
         </ThemedText>
       </ThemedView>
 
@@ -76,8 +71,8 @@ export default function HomeScreen() {
           ListEmptyComponent={
             <ThemedView style={tw`flex-1 justify-center items-center p-8`}>
               <ThemedText style={tw`text-center`}>
-                Aucun anime en cours trouvé. Vérifiez votre connexion internet
-                et réessayez.
+                Aucun anime à venir trouvé. Vérifiez votre connexion internet et
+                réessayez.
               </ThemedText>
             </ThemedView>
           }
