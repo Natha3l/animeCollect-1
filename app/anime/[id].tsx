@@ -6,25 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
-  Platform,
 } from "react-native";
 import tw from "twrnc";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import EpisodeCard from "@/components/EpisodeCard";
 import {
-  KitsuAnime,
-  KitsuCategory,
-  KitsuEpisode,
   fetchAnimeById,
   fetchAnimeCategories,
   fetchEpisodesByAnimeId,
   getBestTitle,
   getImageUrl,
+  KitsuAnime,
+  KitsuCategory,
+  KitsuEpisode,
 } from "@/services/api";
-import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { ExternalLink } from "@/components/ExternalLink";
 import {
@@ -37,15 +34,14 @@ import {
   getWatchedEpisodesForAnime,
 } from "@/services/episodeWatchService";
 
-export default function AnimeDetailScreen() {
+export default function AnimeDetailAltScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [anime, setAnime] = useState<KitsuAnime | null>(null);
   const [episodes, setEpisodes] = useState<KitsuEpisode[]>([]);
   const [categories, setCategories] = useState<KitsuCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingEpisodes, setLoadingEpisodes] = useState(true);
-  const [inCollection, setInCollection] = useState(false);
   const [watchedEpisodes, setWatchedEpisodes] = useState<WatchedEpisode[]>([]);
+  const [inCollection, setInCollection] = useState(false);
   const colorScheme = useColorScheme() ?? "light";
   const router = useRouter();
 
@@ -53,7 +49,6 @@ export default function AnimeDetailScreen() {
     if (!id) return;
 
     setLoading(true);
-
     const [animeData, episodesData, categoriesData, collectionStatus] =
       await Promise.all([
         fetchAnimeById(id),
@@ -66,19 +61,12 @@ export default function AnimeDetailScreen() {
     setEpisodes(episodesData);
     setCategories(categoriesData);
     setInCollection(collectionStatus);
-
     setLoading(false);
-    setLoadingEpisodes(false);
-
 
     if (animeData) {
-      loadWatchedEpisodes(animeData.id);
+      const watched = await getWatchedEpisodesForAnime(animeData.id);
+      setWatchedEpisodes(watched);
     }
-  };
-
-  const loadWatchedEpisodes = async (animeId: string) => {
-    const watched = await getWatchedEpisodesForAnime(animeId);
-    setWatchedEpisodes(watched);
   };
 
   useEffect(() => {
@@ -87,7 +75,6 @@ export default function AnimeDetailScreen() {
 
   const toggleCollection = async () => {
     if (!anime) return;
-
     if (inCollection) {
       const removed = await removeFromCollection(anime.id);
       if (removed) setInCollection(false);
@@ -97,204 +84,109 @@ export default function AnimeDetailScreen() {
     }
   };
 
-  const handleWatchStatusChanged = async () => {
-    if (anime) {
-      loadWatchedEpisodes(anime.id);
-      const collectionStatus = await isInCollection(anime.id);
-      setInCollection(collectionStatus);
-    }
-  };
-  const FavoriteButton = () => (
-    <TouchableOpacity onPress={toggleCollection} style={tw`px-2 py-1`}>
-      <ThemedText style={tw`text-2xl`}>{inCollection ? "★" : "☆"}</ThemedText>
-    </TouchableOpacity>
-  );
+  const title = anime
+    ? getBestTitle(anime.attributes.titles, anime.attributes.canonicalTitle)
+    : "";
 
-  if (loading) {
-    return (
-      <ThemedView style={tw`flex-1 justify-center items-center`}>
-        <ActivityIndicator
-          size="large"
-          color={colorScheme === "light" ? Colors.light.tint : Colors.dark.tint}
-        />
-      </ThemedView>
-    );
-  }
-
-  if (!anime) {
-    return (
-      <ThemedView style={tw`flex-1 justify-center items-center p-4`}>
-        <ThemedText style={tw`text-lg font-bold text-center`}>
-          Anime non trouvé
-        </ThemedText>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={tw`mt-4 bg-blue-500 rounded-full px-4 py-2`}
-        >
-          <ThemedText style={tw`text-white`}>Retour</ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-    );
-  }
-
-  const title = getBestTitle(
-    anime.attributes.titles,
-    anime.attributes.canonicalTitle
-  );
-  const posterImage = getImageUrl(anime.attributes.posterImage, "medium");
+  const posterImage = anime ? getImageUrl(anime.attributes.posterImage, "medium") : "";
 
   const sortedEpisodes = [...episodes].sort(
     (a, b) => (a.attributes.number || 0) - (b.attributes.number || 0)
   );
 
-  const shortTitle = title.length > 20 ? title.substring(0, 18) + "..." : title;
+  const FavoriteButton = () => (
+    <TouchableOpacity onPress={toggleCollection} style={tw`px-2 py-1`}>
+      <ThemedText style={tw`text-2xl`}>{inCollection ? "♥" : "♡"}</ThemedText>
+    </TouchableOpacity>
+  );
+
+  if (loading || !anime) {
+    return (
+      <ThemedView style={tw`flex-1 justify-center items-center`}>
+        <ActivityIndicator size="large" />
+      </ThemedView>
+    );
+  }
 
   return (
     <>
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTitle: shortTitle,
+          headerTitle: title.length > 22 ? title.slice(0, 20) + "..." : title,
           headerRight: FavoriteButton,
-          headerBackTitle: "Retour",
         }}
       />
 
-      <ScrollView style={tw`flex-1`}>
-        {/* Poster et informations de base */}
-        <View style={tw`items-center pt-6 pb-4 bg-blue-500 dark:bg-blue-800`}>
+      <ScrollView style={tw`flex-1 bg-gray-100 dark:bg-gray-900`}>
+        <View style={tw`items-center p-4`}>
           <Image
             source={{ uri: posterImage }}
-            style={tw`w-36 h-52 rounded-lg shadow-lg mb-4`}
-            resizeMode="cover"
+            style={tw`w-40 h-56 rounded-xl shadow-md mb-4`}
           />
 
-          {title && (
-            <ThemedText
-              style={tw`text-xl font-bold text-center px-4 text-white`}
-            >
-              {title}
-            </ThemedText>
-          )}
+          <ThemedText style={tw`text-xl font-bold text-center mb-2`}>
+            {title}
+          </ThemedText>
 
-          <View style={tw`flex-row mt-2`}>
+          <View style={tw`flex-row gap-2 mb-2`}>
             {anime.attributes.showType && (
-              <View
-                style={tw`bg-white dark:bg-gray-700 rounded-full px-3 py-1 mx-1`}
-              >
-                <ThemedText
-                  style={tw`text-xs text-blue-500 dark:text-blue-300`}
-                >
-                  {anime.attributes.showType}
-                </ThemedText>
-              </View>
+              <ThemedText style={tw`text-sm text-purple-500`}>
+                {anime.attributes.showType}
+              </ThemedText>
             )}
-
             {anime.attributes.status && (
-              <View
-                style={tw`bg-white dark:bg-gray-700 rounded-full px-3 py-1 mx-1`}
-              >
-                <ThemedText
-                  style={tw`text-xs text-blue-500 dark:text-blue-300`}
-                >
-                  {anime.attributes.status === "current"
-                    ? "En cours"
-                    : anime.attributes.status === "finished"
-                    ? "Terminé"
-                    : anime.attributes.status === "upcoming"
-                    ? "À venir"
-                    : anime.attributes.status}
-                </ThemedText>
-              </View>
+              <ThemedText style={tw`text-sm text-gray-500`}>
+                {anime.attributes.status}
+              </ThemedText>
             )}
           </View>
 
           {anime.attributes.averageRating && (
-            <View style={tw`flex-row items-center mt-2`}>
-              <ThemedText style={tw`text-amber-300 mr-1 text-lg`}>★</ThemedText>
-              <ThemedText style={tw`font-bold text-white`}>
-                {(parseFloat(anime.attributes.averageRating) / 10).toFixed(1)}
-              </ThemedText>
-            </View>
+            <ThemedText style={tw`text-lg text-amber-400`}>
+              ★ {(parseFloat(anime.attributes.averageRating) / 10).toFixed(1)}
+            </ThemedText>
           )}
         </View>
 
-        <ThemedView style={tw`p-4`}>
-          {/* Synopsis */}
-          {anime.attributes.synopsis && (
-            <>
-              <ThemedText style={tw`text-lg font-bold mb-1`}>
-                Synopsis
-              </ThemedText>
-              <ThemedText style={tw`mb-4`}>
-                {anime.attributes.synopsis}
-              </ThemedText>
-            </>
-          )}
-
-          {/* Information */}
-          <ThemedText style={tw`text-lg font-bold mb-1`}>
-            Information
+        <ThemedView style={tw`px-4`}>
+          <ThemedText style={tw`text-lg font-semibold mb-2`}>Synopsis</ThemedText>
+          <ThemedText style={tw`text-sm mb-4 text-justify`}>
+            {anime.attributes.synopsis}
           </ThemedText>
-          <ThemedView
-            style={tw`bg-gray-100 dark:bg-gray-800 rounded-lg p-3 mb-4`}
-          >
+
+          <ThemedText style={tw`text-lg font-semibold mb-2`}>Détails</ThemedText>
+          <View style={tw`gap-1 mb-4`}>
             {anime.attributes.startDate && (
-              <View style={tw`flex-row mb-1`}>
-                <ThemedText style={tw`font-bold w-24`}>Début:</ThemedText>
-                <ThemedText>
-                  {new Date(anime.attributes.startDate).toLocaleDateString()}
-                </ThemedText>
-              </View>
+              <ThemedText>Début : {anime.attributes.startDate}</ThemedText>
             )}
-
             {anime.attributes.endDate && (
-              <View style={tw`flex-row mb-1`}>
-                <ThemedText style={tw`font-bold w-24`}>Fin:</ThemedText>
-                <ThemedText>
-                  {new Date(anime.attributes.endDate).toLocaleDateString()}
-                </ThemedText>
-              </View>
+              <ThemedText>Fin : {anime.attributes.endDate}</ThemedText>
             )}
-
             {anime.attributes.episodeCount && (
-              <View style={tw`flex-row mb-1`}>
-                <ThemedText style={tw`font-bold w-24`}>Épisodes:</ThemedText>
-                <ThemedText>{anime.attributes.episodeCount}</ThemedText>
-              </View>
+              <ThemedText>Épisodes : {anime.attributes.episodeCount}</ThemedText>
             )}
-
             {anime.attributes.episodeLength && (
-              <View style={tw`flex-row mb-1`}>
-                <ThemedText style={tw`font-bold w-24`}>Durée:</ThemedText>
-                <ThemedText>{anime.attributes.episodeLength} min</ThemedText>
-              </View>
+              <ThemedText>Durée : {anime.attributes.episodeLength} min</ThemedText>
             )}
-
             {anime.attributes.popularityRank && (
-              <View style={tw`flex-row`}>
-                <ThemedText style={tw`font-bold w-24`}>Popularité:</ThemedText>
-                <ThemedText>#{anime.attributes.popularityRank}</ThemedText>
-              </View>
+              <ThemedText>Popularité : #{anime.attributes.popularityRank}</ThemedText>
             )}
-          </ThemedView>
+          </View>
 
-          {/* Catégories */}
           {categories.length > 0 && (
             <>
-              <ThemedText style={tw`text-lg font-bold mb-2`}>
-                Catégories
+              <ThemedText style={tw`text-lg font-semibold mb-2`}>
+                Genres
               </ThemedText>
-              <View style={tw`flex-row flex-wrap mb-4`}>
-                {categories.map((category) => (
+              <View style={tw`flex-row flex-wrap gap-2 mb-4`}>
+                {categories.map((cat) => (
                   <View
-                    key={category.id}
-                    style={tw`bg-blue-100 dark:bg-blue-900 rounded-full px-3 py-1 mr-2 mb-2`}
+                    key={cat.id}
+                    style={tw`bg-purple-100 dark:bg-purple-800 px-3 py-1 rounded-full`}
                   >
-                    <ThemedText
-                      style={tw`text-xs text-blue-800 dark:text-blue-200`}
-                    >
-                      {category.attributes.title}
+                    <ThemedText style={tw`text-xs text-purple-900 dark:text-white`}>
+                      {cat.attributes.title}
                     </ThemedText>
                   </View>
                 ))}
@@ -302,52 +194,28 @@ export default function AnimeDetailScreen() {
             </>
           )}
 
-          {/* Liste des épisodes */}
-          <View style={tw`flex-row justify-between items-center mb-2`}>
-            <ThemedText style={tw`text-lg font-bold`}>Épisodes</ThemedText>
-
-            {/* Progression */}
-            {sortedEpisodes.length > 0 && (
-              <View
-                style={tw`bg-blue-100 dark:bg-blue-900 rounded-full px-3 py-1`}
-              >
-                <ThemedText
-                  style={tw`text-xs text-blue-800 dark:text-blue-200`}
-                >
-                  {watchedEpisodes.length} / {sortedEpisodes.length} vus
-                </ThemedText>
-              </View>
-            )}
-          </View>
-
-          {loadingEpisodes ? (
-            <ActivityIndicator
-              size="small"
-              color={
-                colorScheme === "light" ? Colors.light.tint : Colors.dark.tint
-              }
-              style={tw`py-4`}
-            />
-          ) : sortedEpisodes.length > 0 ? (
-            sortedEpisodes.map((episode) => (
-              <EpisodeCard
-                key={episode.id}
-                episode={episode}
-                animeId={anime.id}
-                animePosterUrl={posterImage}
-                onWatchStatusChanged={handleWatchStatusChanged}
-              />
-            ))
-          ) : (
-            <ThemedText style={tw`py-2 text-center`}>
+          <ThemedText style={tw`text-lg font-semibold mb-2`}>
+            Épisodes ({watchedEpisodes.length}/{sortedEpisodes.length})
+          </ThemedText>
+          {sortedEpisodes.length === 0 ? (
+            <ThemedText style={tw`text-sm text-center`}>
               Aucun épisode disponible.
             </ThemedText>
+          ) : (
+            sortedEpisodes.map((ep) => (
+              <EpisodeCard
+                key={ep.id}
+                episode={ep}
+                animeId={anime.id}
+                animePosterUrl={posterImage}
+                onWatchStatusChanged={loadData}
+              />
+            ))
           )}
 
-          {/* Bande-annonce YouTube */}
           {anime.attributes.youtubeVideoId && (
-            <View style={tw`mt-4 mb-2`}>
-              <ThemedText style={tw`text-lg font-bold mb-2`}>
+            <View style={tw`mt-6`}>
+              <ThemedText style={tw`text-lg font-semibold mb-2`}>
                 Bande-annonce
               </ThemedText>
               <ExternalLink
