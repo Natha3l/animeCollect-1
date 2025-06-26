@@ -54,7 +54,6 @@ export default function AnimeDetailScreen() {
 
     setLoading(true);
 
-    // Load anime details, episodes, and categories in parallel
     const [animeData, episodesData, categoriesData, collectionStatus] =
       await Promise.all([
         fetchAnimeById(id),
@@ -71,7 +70,7 @@ export default function AnimeDetailScreen() {
     setLoading(false);
     setLoadingEpisodes(false);
 
-    // Load watched episodes
+
     if (animeData) {
       loadWatchedEpisodes(animeData.id);
     }
@@ -100,16 +99,11 @@ export default function AnimeDetailScreen() {
 
   const handleWatchStatusChanged = async () => {
     if (anime) {
-      // Recharger les épisodes visionnés
       loadWatchedEpisodes(anime.id);
-
-      // Vérifier si l'anime a été ajouté à la collection
       const collectionStatus = await isInCollection(anime.id);
       setInCollection(collectionStatus);
     }
   };
-
-  // Composant bouton pour ajouter/retirer des favoris
   const FavoriteButton = () => (
     <TouchableOpacity onPress={toggleCollection} style={tw`px-2 py-1`}>
       <ThemedText style={tw`text-2xl`}>{inCollection ? "★" : "☆"}</ThemedText>
@@ -143,19 +137,16 @@ export default function AnimeDetailScreen() {
     );
   }
 
-  // Get the title and poster image
   const title = getBestTitle(
     anime.attributes.titles,
     anime.attributes.canonicalTitle
   );
   const posterImage = getImageUrl(anime.attributes.posterImage, "medium");
 
-  // Trier les épisodes par numéro
   const sortedEpisodes = [...episodes].sort(
     (a, b) => (a.attributes.number || 0) - (b.attributes.number || 0)
   );
 
-  // Titre court pour l'en-tête
   const shortTitle = title.length > 20 ? title.substring(0, 18) + "..." : title;
 
   return (
@@ -228,7 +219,6 @@ export default function AnimeDetailScreen() {
           )}
         </View>
 
-        {/* Contenu principal */}
         <ThemedView style={tw`p-4`}>
           {/* Synopsis */}
           {anime.attributes.synopsis && (

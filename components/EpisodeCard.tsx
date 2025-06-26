@@ -32,7 +32,6 @@ export default function EpisodeCard({
   const router = useRouter();
   const [watched, setWatched] = useState(false);
 
-  // Check if episode is watched on mount
   useEffect(() => {
     const checkWatchStatus = async () => {
       const isWatched = await isEpisodeWatched(episode.id);
@@ -56,12 +55,9 @@ export default function EpisodeCard({
         if (onWatchStatusChanged) onWatchStatusChanged();
       }
     } else {
-      // Fonction pour ajouter l'anime à la collection si nécessaire
       const addAnimeToCollection = async (animId: string) => {
-        // Vérifier d'abord si l'anime est déjà en collection
         const alreadyInCollection = await isInCollection(animId);
         if (!alreadyInCollection) {
-          // Si pas en collection, récupérer les détails et l'ajouter
           const animeDetails = await fetchAnimeById(animId);
           if (animeDetails) {
             await addToCollection(animeDetails);
@@ -69,7 +65,6 @@ export default function EpisodeCard({
         }
       };
 
-      // Marquer comme vu et ajouter à la collection
       const marked = await markEpisodeAsWatched(
         episode,
         targetAnimeId,
@@ -83,23 +78,19 @@ export default function EpisodeCard({
     }
   };
 
-  // Get episode number as main identifier
   const episodeNumber = episode.attributes.number
     ? `Épisode ${episode.attributes.number}`
     : "Épisode spécial";
 
-  // Check if episode has a title
   const hasTitle =
     episode.attributes.canonicalTitle ||
     (episode.attributes.titles &&
       Object.keys(episode.attributes.titles).length > 0);
 
-  // Get title if available
   const episodeTitle = hasTitle
     ? getBestTitle(episode.attributes.titles, episode.attributes.canonicalTitle)
     : "";
 
-  // Get thumbnail with fallback to anime poster
   const thumbnailUrl = episode.attributes.thumbnail
     ? getImageUrl(episode.attributes.thumbnail, "medium")
     : animePosterUrl || "https://via.placeholder.com/160x90?text=No+Image";

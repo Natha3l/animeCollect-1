@@ -20,7 +20,6 @@ export default function AnimeCard({ anime, showType = true }: AnimeCardProps) {
     router.push(`/anime/${anime.id}`);
   };
 
-  // Get best title available
   const title = getBestTitle(
     "attributes" in anime && "titles" in anime.attributes
       ? anime.attributes.titles
@@ -28,10 +27,8 @@ export default function AnimeCard({ anime, showType = true }: AnimeCardProps) {
     anime.attributes.canonicalTitle
   );
 
-  // Get poster image with fallback
   const imageUrl = getImageUrl(anime.attributes.posterImage, "medium");
 
-  // Format start date if available
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "Date inconnue";
 
@@ -45,7 +42,6 @@ export default function AnimeCard({ anime, showType = true }: AnimeCardProps) {
     });
   };
 
-  // Get anime status and convert to French
   const getStatus = (status?: string) => {
     if (!status) return "";
 
@@ -65,71 +61,77 @@ export default function AnimeCard({ anime, showType = true }: AnimeCardProps) {
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
-      style={tw`mb-4 rounded-lg overflow-hidden`}
-      activeOpacity={0.7}
-    >
-      <ThemedView style={tw`p-3 rounded-lg bg-gray-100 dark:bg-gray-800`}>
-        <View style={tw`flex-row`}>
-          <Image
-            source={{ uri: imageUrl }}
-            style={tw`w-20 h-28 rounded-md`}
-            resizeMode="cover"
-          />
-          <View style={tw`flex-1 ml-3 justify-between -mt-1.5`}>
-            <View>
-              <ThemedText
-                style={tw`font-bold text-base mb-1`}
-                numberOfLines={2}
-              >
-                {title}
-              </ThemedText>
+  onPress={handlePress}
+  style={tw`mb-6 rounded-xl overflow-hidden shadow-lg`}
+  activeOpacity={0.8}
+>
+  <ThemedView style={tw`p-4 rounded-xl bg-white dark:bg-gray-900`}>
+    <View style={tw`flex-row`}>
+      <Image
+        source={{ uri: imageUrl }}
+        style={tw`w-24 h-32 rounded-lg border border-gray-300`}
+        resizeMode="cover"
+      />
+      <View style={tw`flex-1 ml-4 justify-between`}>
+        <View>
+          <ThemedText
+            style={tw`font-extrabold text-lg text-black dark:text-white mb-1`}
+            numberOfLines={2}
+          >
+            {title}
+          </ThemedText>
 
-              <View style={tw`flex-row flex-wrap`}>
-                {anime.attributes.averageRating && (
-                  <View style={tw`flex-row items-center mr-3 mb-1`}>
-                    <ThemedText style={tw`text-amber-500 mr-1`}>★</ThemedText>
-                    <ThemedText style={tw`text-xs`}>
-                      {(
-                        parseFloat(anime.attributes.averageRating) / 10
-                      ).toFixed(1)}
-                    </ThemedText>
-                  </View>
-                )}
-
-                {showType && anime.attributes.showType && (
-                  <ThemedText style={tw`text-xs mr-3 mb-1`}>
-                    {anime.attributes.showType}
-                  </ThemedText>
-                )}
-
-                {anime.attributes.episodeCount > 0 && (
-                  <ThemedText style={tw`text-xs mb-1`}>
-                    {anime.attributes.episodeCount} épisodes
-                  </ThemedText>
-                )}
-              </View>
-
-              {anime.attributes.startDate && (
-                <ThemedText
-                  style={tw`text-xs text-gray-500 dark:text-gray-400`}
-                >
-                  {formatDate(anime.attributes.startDate)}
+          <View style={tw`flex-row flex-wrap items-center`}>
+            {anime.attributes.averageRating && (
+              <View style={tw`flex-row items-center mr-4 mb-1`}>
+                <ThemedText style={tw`text-yellow-500 mr-1 text-base`}>★</ThemedText>
+                <ThemedText style={tw`text-sm`}>
+                  {(parseFloat(anime.attributes.averageRating) / 10).toFixed(1)}
                 </ThemedText>
-              )}
-            </View>
-            <View style={tw`mt-2`}>
-              {anime.attributes.status && (
-                <View style={tw`bg-blue-500 self-start rounded-full px-3 py-1`}>
-                  <ThemedText style={tw`text-white text-xs`}>
-                    {getStatus(anime.attributes.status)}
-                  </ThemedText>
-                </View>
-              )}
-            </View>
+              </View>
+            )}
+
+            {showType && anime.attributes.showType && (
+              <ThemedText style={tw`text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full mr-2`}>
+                {anime.attributes.showType}
+              </ThemedText>
+            )}
+
+            {anime.attributes.episodeCount > 0 && (
+              <ThemedText style={tw`text-xs text-gray-600 dark:text-gray-300`}>
+                {anime.attributes.episodeCount} épisodes
+              </ThemedText>
+            )}
           </View>
+
+          {anime.attributes.startDate && (
+            <ThemedText style={tw`text-xs text-gray-500 mt-1`}>
+              {formatDate(anime.attributes.startDate)}
+            </ThemedText>
+          )}
         </View>
-      </ThemedView>
-    </TouchableOpacity>
+
+        <View style={tw`mt-2`}>
+          {anime.attributes.status && (
+            <View
+              style={tw.style(
+                `self-start rounded-full px-3 py-1`,
+                anime.attributes.status === "current" && "bg-green-500",
+                anime.attributes.status === "finished" && "bg-emerald-600",
+                anime.attributes.status === "upcoming" && "bg-orange-500",
+                anime.attributes.status === "tba" && "bg-purple-500"
+              )}
+            >
+              <ThemedText style={tw`text-white text-xs`}>
+                {getStatus(anime.attributes.status)}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  </ThemedView>
+</TouchableOpacity>
+
   );
 }

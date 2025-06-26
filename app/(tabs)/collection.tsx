@@ -25,7 +25,6 @@ export default function CollectionScreen() {
     setLoading(true);
     const collectionData = await getCollection();
 
-    // Sort by date added (newest first)
     collectionData.sort((a, b) => {
       return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
     });
@@ -34,14 +33,11 @@ export default function CollectionScreen() {
     setLoading(false);
   };
 
-  // Load collection when the screen is focused
   useFocusEffect(
     useCallback(() => {
       loadCollection();
     }, [])
   );
-
-  // Also load on first render
   useEffect(() => {
     loadCollection();
   }, []);
