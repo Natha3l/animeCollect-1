@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, TouchableOpacity } from "react-native";
 import tw from "twrnc";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -38,16 +38,23 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <ThemedView style={tw`flex-1`}>
-      <ThemedView style={tw`pt-16 pb-4 px-4 bg-blue-500 dark:bg-blue-800`}>
-        <ThemedText style={tw`text-2xl font-bold text-white`}>
-          En cours de diffusion
-        </ThemedText>
-        <ThemedText style={tw`text-white mt-1`}>
-          Les animes actuellement en cours
-        </ThemedText>
+    <ThemedView style={tw`flex-1 bg-gradient-to-b from-indigo-100 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800`}>
+      {/* Nouveau header en haut */}
+      <ThemedView
+        style={tw`mx-4 mt-4 mb-2 p-4 rounded-3xl bg-white/80 dark:bg-zinc-800/70 shadow-lg backdrop-blur-md flex-row justify-between items-center`}
+      >
+        <ThemedView>
+          <ThemedText style={tw`text-xl font-bold text-zinc-800 dark:text-white`}>
+            Animes en diffusion
+          </ThemedText>
+          <ThemedText style={tw`text-sm text-zinc-500 dark:text-zinc-300 mt-1`}>
+            Suivis semaine après semaine
+          </ThemedText>
+        </ThemedView>
+
       </ThemedView>
 
+      {/* Liste des animes */}
       {loading && !refreshing ? (
         <ThemedView style={tw`flex-1 justify-center items-center`}>
           <ActivityIndicator
@@ -62,7 +69,7 @@ export default function HomeScreen() {
           data={animes}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <AnimeCard anime={item} />}
-          contentContainerStyle={tw`px-4 pt-4 pb-20`}
+          contentContainerStyle={tw`px-4 pt-2 pb-20`}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -75,9 +82,8 @@ export default function HomeScreen() {
           }
           ListEmptyComponent={
             <ThemedView style={tw`flex-1 justify-center items-center p-8`}>
-              <ThemedText style={tw`text-center`}>
-                Aucun anime en cours trouvé. Vérifiez votre connexion internet
-                et réessayez.
+              <ThemedText style={tw`text-center text-zinc-600 dark:text-zinc-300`}>
+                Aucun anime trouvé. Vérifie ta connexion et réessaie.
               </ThemedText>
             </ThemedView>
           }

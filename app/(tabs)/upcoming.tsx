@@ -34,13 +34,20 @@ export default function UpcomingScreen() {
 
   return (
     <ThemedView style={tw`flex-1`}>
-      <ThemedView style={tw`pt-16 pb-4 px-4 bg-blue-500 dark:bg-blue-800`}>
-        <ThemedText style={tw`text-2xl font-bold text-white`}>
-          Animés à venir
-        </ThemedText>
-        <ThemedText style={tw`text-white mt-1`}>
-          Les prochaines sorties d'animés
-        </ThemedText>
+      {/* Header avec cadre visible et padding réduit */}
+      <ThemedView
+        style={tw`pt-6 px-4 pb-4`}
+      >
+        <ThemedView
+          style={tw`rounded-2xl p-4 bg-white/90 dark:bg-black/50 shadow-lg border border-gray-200 dark:border-gray-700`}
+        >
+          <ThemedText style={tw`text-lg font-bold mb-1`}>
+            Animés à venir
+          </ThemedText>
+          <ThemedText style={tw`text-sm text-gray-500 dark:text-gray-400`}>
+            Les prochaines sorties d'animés
+          </ThemedText>
+        </ThemedView>
       </ThemedView>
 
       {loading && !refreshing ? (
